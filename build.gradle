@@ -1,0 +1,103 @@
+apply plugin: 'java-library'
+apply plugin: 'idea'
+apply plugin: 'maven-publish'
+apply plugin: 'signing'
+
+group 'fr.flowarg'
+version '1.0.0'
+archivesBaseName = 'mcmsal'
+
+compileJava {
+    sourceCompatibility = targetCompatibility = JavaVersion.VERSION_1_8
+    options.encoding = 'UTF-8'
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(8)
+    }
+}
+
+task sourcesJar(type: Jar) {
+    classifier 'sources'
+    from sourceSets.main.allSource
+}
+
+task javadocJar(type: Jar) {
+    classifier 'javadoc'
+    from javadoc
+}
+
+artifacts {
+    archives sourcesJar, javadocJar
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+            artifact tasks.sourcesJar
+            artifact tasks.javadocJar
+            
+            pom {
+                groupId = project.group
+                version = project.version
+                artifactId = archivesBaseName
+                name = 'MCMSAL'
+                description = 'MinecraftMicrosoft Authentication Library for Java 8+, adapted from MiniLauncher code (Java 11).'
+                url = 'https://github.com/FlowArg/MCMSAL'
+
+                issueManagement {
+                    system = 'github'
+                    url = 'https://github.com/FlowArg/MCMSAL/issues'
+                }
+
+                scm {
+                    connection = 'scm:git:git://github.com/FlowArg/MCMSAL.git'
+                    developerConnection = 'scm:git:ssh://github.com:FlowArg/MCMSAL.git'
+                    url = 'http://github.com/FlowArg/MCMSAL/tree/master'
+                }
+
+                licenses {
+                    license {
+                        name = 'GNU GENERAL PUBLIC LICENSE 3.0'
+                        url = 'https://www.gnu.org/licenses/gpl-3.0.txt'
+                    }
+                }
+
+                developers {
+                    developer {
+                        id = 'flowarg'
+                        name = 'Flow Arg'
+                        email = 'coutureflorence3@gmail.com'
+                    }
+                }
+            }
+        }
+    }
+    
+    repositories {
+        maven {
+            credentials {
+                username ossrhUsername
+                password ossrhPassword
+            }
+            def releasesRepoUrl = "https://oss.sonatype.org/service/local/staging/deploy/maven2/"
+            def snapshotsRepoUrl = "https://oss.sonatype.org/content/repositories/snapshots/"
+            url = project.version.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
+        }
+    }    
+}
+
+signing {
+    sign publishing.publications.mavenJava
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    api 'com.googlecode.json-simple:json-simple:1.1.1'
+    api 'fr.flowarg:flowmultitools:1.2.4'
+}
